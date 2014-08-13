@@ -1,0 +1,23 @@
+<div id="content">
+    <form name="input" action="execute" method="post" class="bigSeparation">
+        <div>
+            <span>Select the project to be released</span>
+            <select name="project" >
+                {{ .Projects }}
+            </select>
+        </div>
+        <div>
+            <span>Select release type</span>
+            <select name="type" >
+              <option value="MAJOR">Major release</option>
+              <option value="MINOR">Minor release</option>
+              <option value="HOTFIX">Hotfix release</option>
+            </select>
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+    <h2>Favor commits to be released</h2>
+    <div>
+        {{ .Commits }}
+    <div>
+</div>
