@@ -4,6 +4,7 @@ import "fmt"
 import "strings"
 import "regexp"
 import "api/config"
+import "api/command"
 
 type Branch string
 type Repository string
@@ -12,9 +13,9 @@ const (
 	DEVELOP_BRANCH Branch = "develop"
 	MASTER_BRANCH Branch = "master"
 
-	AUTHOR_TOKEN = "Author:"
-	DATE_TOKEN = "Date:"
-	JIRA_ISSUE_ID_REGEX = "CS-\\d+"
+	AUTHOR_TOKEN string = "Author:"
+	DATE_TOKEN string = "Date:"
+	JIRA_ISSUE_ID_REGEX string = "CS-\\d+"
 )
 
 type CommitData struct {
@@ -27,45 +28,45 @@ type CommitData struct {
 
 func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 	logCommand := fmt.Sprintf("git -C %v log -n%v %v", repository, numCommits, branch)
-	rawCommitText := executeCommand(logCommand)
+	rawCommitText := command.ExecuteCommand(logCommand)
 	return parseCommitResponse(rawCommitText)
 }
 
 func Merge(repository Repository, currentBranch Branch, mergeBranch Branch) {
 	repoPath := getLocalRepositoryPath(repository)
 	Checkout(repository, currentBranch)
-	executeCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  "Merge with " + string(mergeBranch),
+	command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  "Merge with " + string(mergeBranch),
 		string(mergeBranch))
 }
 
 func AddAll(repository Repository) {
 	repoPath := getLocalRepositoryPath(repository)
 	addCommand := fmt.Sprintf("git -C %v add --all", repoPath);
-	executeCommand(addCommand)
+	command.ExecuteCommand(addCommand)
 }
 
 func Checkout(repository Repository, branch Branch) {
 	repoPath := getLocalRepositoryPath(repository)
 	checkoutCommand := fmt.Sprintf("git -C %v checkout -b %v origin/%v", repoPath, branch, branch);
-	executeCommand(checkoutCommand)
+	command.ExecuteCommand(checkoutCommand)
 }
 
 func ChangeBranch(repository Repository, branch Branch) {
 	repoPath := getLocalRepositoryPath(repository)
 	checkoutCommand := fmt.Sprintf("git -C %v checkout %v", repoPath, branch);
-	executeCommand(checkoutCommand)
+	command.ExecuteCommand(checkoutCommand)
 }
 
 func Commit(repository Repository, message string, jiraTicket string) {
 	repoPath := getLocalRepositoryPath(repository)
 	commitMessage := jiraTicket + message
-	executeCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
+	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
 }
 
 func Push(repository Repository, branch string) {
 	repoPath := getLocalRepositoryPath(repository)
 	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch);
-	executeCommand(pushCommand)
+	command.ExecuteCommand(pushCommand)
 }
 
 func Clone(repository Repository) {
@@ -73,13 +74,13 @@ func Clone(repository Repository) {
 	extRepositoryPathFmt := getExternalRepositoryPath(repository)
 
 	cloneCommand := fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt);
-	executeCommand(cloneCommand)
+	command.ExecuteCommand(cloneCommand)
 }
 
 func CommitDiff(repository Repository, firstBranch Branch, secondBranch Branch) []CommitData {
 	repoPath := getLocalRepositoryPath(repository)
 	diffCommand := fmt.Sprintf("git -C %v log %v..%v", repoPath, firstBranch, secondBranch);
-	rawCommitText := executeCommand(diffCommand)
+	rawCommitText := command.ExecuteCommand(diffCommand)
 	return parseCommitResponse(rawCommitText)
 }
 
