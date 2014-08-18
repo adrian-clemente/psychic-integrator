@@ -13,7 +13,8 @@ func main() {
 	startLoggingProcess()
 	http.HandleFunc("/logger/", controllers.ViewLoggerHandler)
 	http.HandleFunc("/release/", controllers.ViewReleaseHandler)
-	http.HandleFunc("/release/execute", controllers.PerformReleaseHandler)
+	http.HandleFunc("/release/execute/", controllers.PerformReleaseHandler)
+	http.HandleFunc("/deploy/", controllers.ViewDeployHandler)
 	http.ListenAndServe(":8080", nil)
 }
 

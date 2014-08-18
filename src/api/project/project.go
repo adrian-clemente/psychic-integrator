@@ -1,5 +1,9 @@
 package project
 
+import "api/command"
+import "api/repository"
+import "fmt"
+
 type Project struct {
 	ProjectKey ProjectKey
 	ProjectName ProjectName
@@ -7,6 +11,14 @@ type Project struct {
 
 type ProjectKey string
 type ProjectName string
+
+type ReleaseType struct {
+	ReleaseTypeKey ReleaseTypeKey
+	ReleaseTypeName ReleaseTypeName
+}
+
+type ReleaseTypeKey string
+type ReleaseTypeName string
 
 const (
 	FAVOR_PROJECT ProjectKey = "favor"
@@ -20,6 +32,14 @@ const (
 	OPERADORA_PROJECT_NAME ProjectName = "Operadora"
 	CARTERO_PROJECT_NAME ProjectName = "Cartero"
 	TEST_PROJECT_NAME ProjectName = "Gittest"
+
+	MAJOR_RELEASE_TYPE ReleaseTypeKey = "major"
+	MINOR_RELEASE_TYPE ReleaseTypeKey = "minor"
+	HOTFIX_RELEASE_TYPE ReleaseTypeKey = "hotfix"
+
+	MAJOR_RELEASE_TYPE_NAME ReleaseTypeName = "Major"
+	MINOR_RELEASE_TYPE_NAME ReleaseTypeName = "Minor"
+	HOTFIX_RELEASE_TYPE_NAME ReleaseTypeName = "Hotfix"
 )
 
 func GetProjects() []Project {
@@ -30,4 +50,42 @@ func GetProjects() []Project {
 		{ CARTERO_PROJECT, CARTERO_PROJECT_NAME },
 		{ TEST_PROJECT, TEST_PROJECT_NAME },
 	}
+}
+
+func GetReleaseTypes() []ReleaseType {
+	return []ReleaseType{
+		{ MAJOR_RELEASE_TYPE, MAJOR_RELEASE_TYPE_NAME },
+		{ MINOR_RELEASE_TYPE, MINOR_RELEASE_TYPE_NAME },
+		{ HOTFIX_RELEASE_TYPE, HOTFIX_RELEASE_TYPE_NAME },
+	}
+}
+
+func IncrementVersionByReleaseType(repositoryName repository.Repository, releaseType ReleaseTypeKey) {
+	if releaseType == MAJOR_RELEASE_TYPE {
+		IncrementMajorVersion(repositoryName)
+	} else if releaseType == MINOR_RELEASE_TYPE {
+		IncrementMinorVersion(repositoryName)
+	} else if releaseType == HOTFIX_RELEASE_TYPE {
+		IncrementHotfixVersion(repositoryName)
+	}
+}
+
+func IncrementMajorVersion(repositoryName repository.Repository) {
+	executeGradleTask(repositoryName, "incrementHotfixVersion")
+}
+
+func IncrementMinorVersion(repositoryName repository.Repository) {
+	executeGradleTask(repositoryName, "incrementHotfixVersion")
+}
+
+func IncrementHotfixVersion(repositoryName repository.Repository) {
+	executeGradleTask(repositoryName, "incrementHotfixVersion")
+}
+
+func PrintVersion(repositoryName repository.Repository) string {
+	return executeGradleTask(repositoryName, "printVersion")
+}
+
+func executeGradleTask(repositoryName repository.Repository, gradleTask string) string {
+	return command.ExecuteCommand(fmt.Sprintf("gradle -p %v -q %v", repositoryName, gradleTask))
 }

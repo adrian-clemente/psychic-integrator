@@ -1,22 +1,21 @@
 <div id="content">
+    <h2>Project release</h2>
     <form name="input" action="execute" method="post" class="bigSeparation">
         <div>
             <span>Select the project to be released</span>
-            <select name="project" >
+            <select name="project" onchange="window.location.href='/release/?project=' + this.value">
                 {{ .Projects }}
             </select>
         </div>
         <div>
             <span>Select release type</span>
-            <select name="type" >
-              <option value="MAJOR">Major release</option>
-              <option value="MINOR">Minor release</option>
-              <option value="HOTFIX">Hotfix release</option>
+            <select name="type">
+                {{ .ReleaseTypes }}
             </select>
         </div>
         <input type="submit" value="Submit">
     </form>
-    <h2>Favor commits to be released</h2>
+    <h3>Commits to be released</h3>
     <div>
         {{ .Commits }}
     <div>

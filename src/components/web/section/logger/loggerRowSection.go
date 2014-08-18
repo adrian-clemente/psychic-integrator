@@ -8,5 +8,5 @@ type LoggerRowSection struct {
 }
 
 func (page LoggerRowSection)GetTemplateName() string {
-	return "logger/loggerRowTemplate.tmpl"
+	return "web/logger/loggerRowTemplate.tmpl"
 }

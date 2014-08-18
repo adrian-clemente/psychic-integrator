@@ -1,0 +1,12 @@
+<div id="content">
+    <h2>Project deployment</h2>
+    <form name="input" action="execute" method="post" class="bigSeparation">
+        <div>
+            <span>Select the project to be released</span>
+            <select name="project" >
+                {{ .Projects }}
+            </select>
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+</div>

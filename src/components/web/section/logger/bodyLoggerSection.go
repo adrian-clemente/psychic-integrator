@@ -5,5 +5,5 @@ type BodyLoggerSection struct {
 }
 
 func (page BodyLoggerSection)GetTemplateName() string {
-	return "logger/bodyLoggerTemplate.tmpl"
+	return "web/logger/bodyLoggerTemplate.tmpl"
 }

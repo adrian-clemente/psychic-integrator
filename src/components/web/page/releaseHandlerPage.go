@@ -1,18 +1,21 @@
-package pages
+package page
 
-import "components/web/sections/release"
-import "components/web/sections/generic"
+import "components/web/element"
+import "components/web/section/generic"
+import "components/web/section/release"
 import "components/printer"
 
 type ReleaseHandlerPage struct {
-	ReleaseCommitsSections []release.ReleaseCommitSection
-	ReleaseProjects []release.ReleaseProjectSection
+	ReleaseCommitsSections []element.CommitElement
+	ReleaseProjects []element.OptionElement
+	ReleaseTypes []element.OptionElement
 }
 
 func (page *ReleaseHandlerPage)GetContent() string {
 
 	headerSection := generic.HeaderSection{"Release manager"}
-	bodySection := release.BodyReleaseHandlerSection{page.ReleaseCommitsSections, page.ReleaseProjects}
+	bodySection := release.BodyReleaseMainSection{page.ReleaseCommitsSections, page.ReleaseProjects,
+		page.ReleaseTypes }
 	footerSection := generic.FooterSection{}
 	mainSection := generic.MainSection{headerSection, bodySection, footerSection}
 	printerPage := printer.PrinterPage{}

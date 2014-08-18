@@ -9,5 +9,5 @@ type MainSection struct {
 }
 
 func (page MainSection)GetTemplateName() string {
-	return "generic/structureTemplate.tmpl"
+	return "web/generic/structureTemplate.tmpl"
 }

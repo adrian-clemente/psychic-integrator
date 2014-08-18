@@ -5,5 +5,5 @@ type HeaderSection struct {
 }
 
 func (page HeaderSection)GetTemplateName() string {
-	return "generic/headerTemplate.tmpl"
+	return "web/generic/headerTemplate.tmpl"
 }

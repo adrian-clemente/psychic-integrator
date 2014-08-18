@@ -4,7 +4,7 @@ import "io/ioutil"
 import "text/template"
 import "bytes"
 import "components"
-import "components/web/sections/generic"
+import "components/web/section/generic"
 import "reflect"
 
 const VIEW_PATH = "templates/"

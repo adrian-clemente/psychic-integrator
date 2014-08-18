@@ -33,44 +33,44 @@ func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 }
 
 func Merge(repository Repository, currentBranch Branch, mergeBranch Branch) {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	Checkout(repository, currentBranch)
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  "Merge with " + string(mergeBranch),
 		string(mergeBranch))
 }
 
 func AddAll(repository Repository) {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	addCommand := fmt.Sprintf("git -C %v add --all", repoPath);
 	command.ExecuteCommand(addCommand)
 }
 
 func Checkout(repository Repository, branch Branch) {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	checkoutCommand := fmt.Sprintf("git -C %v checkout -b %v origin/%v", repoPath, branch, branch);
 	command.ExecuteCommand(checkoutCommand)
 }
 
 func ChangeBranch(repository Repository, branch Branch) {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	checkoutCommand := fmt.Sprintf("git -C %v checkout %v", repoPath, branch);
 	command.ExecuteCommand(checkoutCommand)
 }
 
 func Commit(repository Repository, message string, jiraTicket string) {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	commitMessage := jiraTicket + message
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
 }
 
 func Push(repository Repository, branch string) {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch);
 	command.ExecuteCommand(pushCommand)
 }
 
 func Clone(repository Repository) {
-	localRepositoryPathFmt := getLocalRepositoryPath(repository)
+	localRepositoryPathFmt := GetLocalRepositoryPath(repository)
 	extRepositoryPathFmt := getExternalRepositoryPath(repository)
 
 	cloneCommand := fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt);
@@ -78,13 +78,13 @@ func Clone(repository Repository) {
 }
 
 func CommitDiff(repository Repository, firstBranch Branch, secondBranch Branch) []CommitData {
-	repoPath := getLocalRepositoryPath(repository)
+	repoPath := GetLocalRepositoryPath(repository)
 	diffCommand := fmt.Sprintf("git -C %v log %v..%v", repoPath, firstBranch, secondBranch);
 	rawCommitText := command.ExecuteCommand(diffCommand)
 	return parseCommitResponse(rawCommitText)
 }
 
-func getLocalRepositoryPath(repository Repository) string {
+func GetLocalRepositoryPath(repository Repository) string {
 	localRepositoryPath := config.GetProperty("repository.local.path")
 	localRepositoryPathFmt := fmt.Sprintf(localRepositoryPath, repository)
 

@@ -1,7 +1,7 @@
-package pages
+package page
 
-import "components/web/sections/logger"
-import "components/web/sections/generic"
+import "components/web/section/logger"
+import "components/web/section/generic"
 import "components/printer"
 import "api/logging"
 
