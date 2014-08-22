@@ -6,6 +6,7 @@ type BodyReleaseMainSection struct {
 	Commits []element.CommitElement
 	Projects []element.OptionElement
 	ReleaseTypes []element.OptionElement
+	Project string
 }
 
 func (page BodyReleaseMainSection)GetTemplateName() string {

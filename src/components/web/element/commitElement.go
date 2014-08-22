@@ -6,6 +6,7 @@ type CommitElement struct {
 	Date string
 	Text string
 	JiraTicket string
+	JiraUrl string
 }
 
 func (page CommitElement)GetTemplateName() string {

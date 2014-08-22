@@ -1,9 +1,9 @@
 <div id="content">
     <h2>Project release</h2>
-    <form name="input" action="execute" method="post" class="bigSeparation">
+    <form name="input" action="execute/" method="post" class="bigSeparation">
         <div>
             <span>Select the project to be released</span>
-            <select name="project" onchange="window.location.href='/release/?project=' + this.value">
+            <select id="projects" name="project" onchange="window.location.href='/release/?project=' + this.value">
                 {{ .Projects }}
             </select>
         </div>
@@ -15,8 +15,19 @@
         </div>
         <input type="submit" value="Submit">
     </form>
-    <h3>Commits to be released</h3>
+    <h3>{{ .Project }} commits to be released</h3>
     <div>
-        {{ .Commits }}
+        {{ if .Commits }}
+            {{ .Commits }}
+        {{else}}
+            <span>There isn't anything to commit</span>
+        {{ end }}
     <div>
 </div>
+
+<script>
+    var project = window.location.href.split("=")[1]
+    if (project) {
+        document.querySelector('#projects [value="' + project + '"]').selected = true
+    }
+</script>

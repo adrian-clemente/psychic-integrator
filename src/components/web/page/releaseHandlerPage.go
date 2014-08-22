@@ -9,13 +9,14 @@ type ReleaseHandlerPage struct {
 	ReleaseCommitsSections []element.CommitElement
 	ReleaseProjects []element.OptionElement
 	ReleaseTypes []element.OptionElement
+	Project string
 }
 
 func (page *ReleaseHandlerPage)GetContent() string {
 
 	headerSection := generic.HeaderSection{"Release manager"}
 	bodySection := release.BodyReleaseMainSection{page.ReleaseCommitsSections, page.ReleaseProjects,
-		page.ReleaseTypes }
+		page.ReleaseTypes, page.Project }
 	footerSection := generic.FooterSection{}
 	mainSection := generic.MainSection{headerSection, bodySection, footerSection}
 	printerPage := printer.PrinterPage{}

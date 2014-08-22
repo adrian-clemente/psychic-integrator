@@ -1,6 +1,7 @@
 package repository
 
 import "fmt"
+import "os"
 import "strings"
 import "regexp"
 import "api/config"
@@ -34,9 +35,14 @@ func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 
 func Merge(repository Repository, currentBranch Branch, mergeBranch Branch) {
 	repoPath := GetLocalRepositoryPath(repository)
-	Checkout(repository, currentBranch)
-	command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  "Merge with " + string(mergeBranch),
-		string(mergeBranch))
+	ChangeBranch(repository, currentBranch)
+
+	mergeBranchString := "origin/" + string(mergeBranch)
+	currentBranchString := string(currentBranch)
+
+	commitText := fmt.Sprintf("Merge %v into %v", mergeBranchString, currentBranchString)
+
+	command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  commitText, mergeBranchString)
 }
 
 func AddAll(repository Repository) {
@@ -63,7 +69,7 @@ func Commit(repository Repository, message string, jiraTicket string) {
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
 }
 
-func Push(repository Repository, branch string) {
+func Push(repository Repository, branch Branch) {
 	repoPath := GetLocalRepositoryPath(repository)
 	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch);
 	command.ExecuteCommand(pushCommand)
@@ -71,10 +77,14 @@ func Push(repository Repository, branch string) {
 
 func Clone(repository Repository) {
 	localRepositoryPathFmt := GetLocalRepositoryPath(repository)
-	extRepositoryPathFmt := getExternalRepositoryPath(repository)
+	if _, err := os.Stat(localRepositoryPathFmt); os.IsNotExist(err) {
+		extRepositoryPathFmt := getExternalRepositoryPath(repository)
+		cloneCommand := fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt);
+		command.ExecuteCommand(cloneCommand)
 
-	cloneCommand := fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt);
-	command.ExecuteCommand(cloneCommand)
+		Checkout(repository, DEVELOP_BRANCH)
+		Checkout(repository, MASTER_BRANCH)
+	}
 }
 
 func CommitDiff(repository Repository, firstBranch Branch, secondBranch Branch) []CommitData {
