@@ -5,7 +5,6 @@ import "components/web/element"
 type BodyReleaseMainSection struct {
 	Commits []element.CommitElement
 	Projects []element.OptionElement
-	ReleaseTypes []element.OptionElement
 	Project string
 }
 

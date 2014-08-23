@@ -12,8 +12,8 @@ import "api/config"
 
 func ViewReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	projectNameParam := r.URL.Query()["project"]
-	projectName := string(project.TEST_PROJECT)
-	repositoryName := repository.Repository(project.TEST_PROJECT)
+	projectName := string(project.FAVOR_PROJECT)
+	repositoryName := repository.Repository(project.FAVOR_PROJECT)
 	if len(projectNameParam) > 0 {
 		projectName = projectNameParam[0]
 		repositoryName = repository.Repository(projectNameParam[0])
@@ -22,18 +22,17 @@ func ViewReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	repository.Clone(repositoryName)
 
 	releaseProjects := getReleaseProjects()
-	releaseTypes := getReleaseTypes()
 	releaseCommitsSections := getProjectReleaseToCommit(repositoryName)
 
-	releasePage := page.ReleaseHandlerPage{releaseCommitsSections, releaseProjects, releaseTypes, projectName}
+	releasePage := page.ReleaseHandlerPage{releaseCommitsSections, releaseProjects, projectName}
 	releasePageContent := releasePage.GetContent();
 	fmt.Fprintf(w, releasePageContent)
 }
 
 func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
-	projectName := r.FormValue("project")
-	repositoryName := repository.Repository(projectName)
-	releaseType := project.ReleaseTypeKey(r.FormValue("type"))
+	projectNameParam := r.FormValue("project")
+	repositoryName := repository.Repository(projectNameParam)
+	projectName := project.ProjectKey(projectNameParam)
 
 	//First ensure the repository exists
 	repository.Clone(repositoryName)
@@ -41,22 +40,29 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	commitsRelease := repository.CommitDiff(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
 	repository.Merge(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
 
-	project.IncrementVersionByReleaseType(repositoryName, releaseType)
-	projectVersion := project.PrintVersion(repositoryName)
+	project.SetReleaseVersion(repositoryName)
+	projectReleaseVersion := project.PrintVersion(repositoryName)
+	repository.AddAll(repositoryName)
 
 	session := jira.Login()
 	jiraIssueKey := jira.CreateReleaseIssue(session)
 
-	repository.AddAll(repositoryName)
-
-	releaseCommitText := fmt.Sprintf("\"Release of %v version %v\"", projectName, projectVersion)
+	releaseCommitText := fmt.Sprintf("\"Release version %v\"", projectReleaseVersion)
 	repository.Commit(repositoryName, releaseCommitText, jiraIssueKey)
 	repository.Push(repositoryName, repository.MASTER_BRANCH)
 
-	jira.CloseIssue(session, jiraIssueKey)
-	email.GenerateReleaseEmail(project.FAVOR_PROJECT, projectVersion, commitsRelease)
+	email.GenerateReleaseEmail(projectName, projectReleaseVersion, commitsRelease)
 
-	releasePage := page.ReleasePerformedPage{projectName, true}
+	repository.Merge(repositoryName, repository.DEVELOP_BRANCH, repository.MASTER_BRANCH)
+	project.IncrementMinorVersion(repositoryName)
+	project.SetDevelopmentVersion(repositoryName)
+	repository.AddAll(repositoryName)
+	repository.Commit(repositoryName, "Merge master branch into develop branch", jiraIssueKey)
+	repository.Push(repositoryName, repository.MASTER_BRANCH)
+
+	jira.CloseIssue(session, jiraIssueKey)
+
+	releasePage := page.ReleasePerformedPage{projectNameParam, true}
 	releasePageContent := releasePage.GetContent();
 	fmt.Fprintf(w, releasePageContent)
 }

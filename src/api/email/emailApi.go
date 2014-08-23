@@ -39,7 +39,7 @@ func GenerateReleaseEmail(project project.ProjectKey, version string, commits []
 	}
 
 	printerPage := printer.PrinterPage{}
-	content, _ := printerPage.PrintContent(email.ReleaseEmail{jiraIssuesEmail});
+	content, _ := printerPage.PrintContent(email.ReleaseEmail{jiraIssuesEmail, string(project), version});
 
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n";
 	subject := fmt.Sprintf("Subject: Release of %v %v\n", project, version)

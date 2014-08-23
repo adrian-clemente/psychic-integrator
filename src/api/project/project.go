@@ -2,7 +2,9 @@ package project
 
 import "api/command"
 import "api/repository"
+import "api/config"
 import "fmt"
+import "strings"
 
 type Project struct {
 	ProjectKey ProjectKey
@@ -71,21 +73,33 @@ func IncrementVersionByReleaseType(repositoryName repository.Repository, release
 }
 
 func IncrementMajorVersion(repositoryName repository.Repository) {
-	executeGradleTask(repositoryName, "incrementHotfixVersion")
+	executeGradleTask(repositoryName, "incrementMajorVersion")
 }
 
 func IncrementMinorVersion(repositoryName repository.Repository) {
-	executeGradleTask(repositoryName, "incrementHotfixVersion")
+	executeGradleTask(repositoryName, "incrementMinorVersion")
 }
 
 func IncrementHotfixVersion(repositoryName repository.Repository) {
 	executeGradleTask(repositoryName, "incrementHotfixVersion")
 }
 
+func SetReleaseVersion(repositoryName repository.Repository) {
+	executeGradleTask(repositoryName, "setReleaseVersion")
+}
+
+func SetDevelopmentVersion(repositoryName repository.Repository) {
+	executeGradleTask(repositoryName, "setDevelopmentVersion")
+}
+
 func PrintVersion(repositoryName repository.Repository) string {
-	return executeGradleTask(repositoryName, "printVersion")
+	versionRaw := executeGradleTask(repositoryName, "printVersion")
+	return strings.TrimSpace(strings.Split(versionRaw, " ")[1])
 }
 
 func executeGradleTask(repositoryName repository.Repository, gradleTask string) string {
-	return command.ExecuteCommand(fmt.Sprintf("gradle -p %v -q %v", repositoryName, gradleTask))
+	gradlePath := config.GetProperty("gradle.path")
+	projectsContainerPath := config.GetProperty("repository.local.path")
+	projectPath := fmt.Sprintf(projectsContainerPath, repositoryName)
+	return command.ExecuteCommand(fmt.Sprintf("%v -p %v -q %v", gradlePath, projectPath, gradleTask))
 }
