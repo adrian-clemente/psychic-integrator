@@ -33,14 +33,14 @@ func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 	return parseCommitResponse(rawCommitText)
 }
 
-func Merge(repository Repository, currentBranch Branch, mergeBranch Branch) {
+func Merge(repository Repository, currentBranch Branch, mergeBranch Branch, jiraTicket string) {
 	repoPath := GetLocalRepositoryPath(repository)
 	ChangeBranch(repository, currentBranch)
 
 	mergeBranchString := "origin/" + string(mergeBranch)
 	currentBranchString := string(currentBranch)
 
-	commitText := fmt.Sprintf("Merge %v into %v", mergeBranchString, currentBranchString)
+	commitText := fmt.Sprintf("[%v] Merge %v into %v", jiraTicket, mergeBranchString, currentBranchString)
 
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  commitText, mergeBranchString)
 }
@@ -65,7 +65,7 @@ func ChangeBranch(repository Repository, branch Branch) {
 
 func Commit(repository Repository, message string, jiraTicket string) {
 	repoPath := GetLocalRepositoryPath(repository)
-	commitMessage := jiraTicket + message
+	commitMessage := fmt.Sprintf("[%v] %v", jiraTicket, message)
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
 }
 

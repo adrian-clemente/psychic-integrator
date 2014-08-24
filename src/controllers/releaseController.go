@@ -37,30 +37,41 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	//First ensure the repository exists
 	repository.Clone(repositoryName)
 
-	commitsRelease := repository.CommitDiff(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
-	repository.Merge(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
+	//Create Jira Issue
+	session := jira.Login()
+	jiraIssueKey := jira.CreateReleaseIssue(session, projectNameParam)
 
+	//Retrieve wich commits are going to be pushed in this release
+	commitsRelease := repository.CommitDiff(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
+
+	//Merge develop with master branch
+	repository.Merge(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH, jiraIssueKey)
+
+	//Remove SNAPSHOT from version and add all the changes
 	project.SetReleaseVersion(repositoryName)
 	projectReleaseVersion := project.PrintVersion(repositoryName)
 	repository.AddAll(repositoryName)
 
-	session := jira.Login()
-	jiraIssueKey := jira.CreateReleaseIssue(session)
-
+	//Create a commit with the changed version
 	releaseCommitText := fmt.Sprintf("\"Release version %v\"", projectReleaseVersion)
 	repository.Commit(repositoryName, releaseCommitText, jiraIssueKey)
+
+	//Push merge and changed version
 	repository.Push(repositoryName, repository.MASTER_BRANCH)
 
-	email.GenerateReleaseEmail(projectName, projectReleaseVersion, commitsRelease)
-
-	repository.Merge(repositoryName, repository.DEVELOP_BRANCH, repository.MASTER_BRANCH)
+	//Merge master branch into develop and increment version
+	repository.Merge(repositoryName, repository.DEVELOP_BRANCH, repository.MASTER_BRANCH, jiraIssueKey)
 	project.IncrementMinorVersion(repositoryName)
 	project.SetDevelopmentVersion(repositoryName)
 	repository.AddAll(repositoryName)
 	repository.Commit(repositoryName, "Merge master branch into develop branch", jiraIssueKey)
-	repository.Push(repositoryName, repository.MASTER_BRANCH)
+	repository.Push(repositoryName, repository.DEVELOP_BRANCH)
 
+	//Close ticket
 	jira.CloseIssue(session, jiraIssueKey)
+
+	//Send the email with all the commits that were merged
+	email.GenerateReleaseEmail(projectName, projectReleaseVersion, commitsRelease)
 
 	releasePage := page.ReleasePerformedPage{projectNameParam, true}
 	releasePageContent := releasePage.GetContent();

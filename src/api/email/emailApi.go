@@ -30,7 +30,6 @@ func GenerateReleaseEmail(project project.ProjectKey, version string, commits []
 	emailReceiver := config.GetProperty("email.auth.user")
 	log.Printf("Sending release email to: %v", emailReceiver)
 
-
 	var jiraIssuesEmail []email.JiraIssueEmail
 	for _, commit := range commits {
 		jiraIssueFields := jira.RetrieveIssue(commit.JiraTicket)

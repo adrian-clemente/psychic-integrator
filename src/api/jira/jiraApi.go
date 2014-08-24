@@ -9,12 +9,29 @@ import "api/config"
 import "log"
 
 type JiraIssue struct {
-	Fields JiraIssueFields
+	Fields JiraIssueFields `json:"fields"`
+}
+
+type JiraIssueFieldId struct {
+	Id string `json:"id"`
+}
+
+type JiraIssueFieldName struct {
+	Name string `json:"name"`
 }
 
 type JiraIssueFields struct {
-	Summary string
-	Key string
+	Project JiraIssueFieldId `json:"project"`
+	Summary string `json:"summary"`
+	IssueType JiraIssueFieldId `json:"issuetype"`
+	Assignee JiraIssueFieldName `json:"assignee"`
+	Priority JiraIssueFieldId `json:"priority"`
+	Labels []string `json:"labels"`
+	Description string `json:"description"`
+}
+
+type JiraIssueKey struct {
+	Key string `json:"key"`
 }
 
 type JiraSession struct {
@@ -58,48 +75,45 @@ func GetJiraIssueBrowseUrl(issueKey string) string {
 
 func RetrieveIssue(issueKey string) JiraIssueFields {
 
-	log.Printf("Retrieving JIRA issue %v", issueKey)
+	var fields JiraIssueFields
+	if issueKey != "" {
+		log.Printf("Retrieving JIRA issue %v", issueKey)
+		session := Login()
+		retrieveIssueUrl := fmt.Sprintf(getJiraUrl(JIRA_ISSUE_RETRIEVE_URL), issueKey)
 
-	session := Login()
-	retrieveIssueUrl := fmt.Sprintf(getJiraUrl(JIRA_ISSUE_RETRIEVE_URL), issueKey)
+		body := doRequest(retrieveIssueUrl, []byte(""), GET, string(session))
 
-	body := doRequest(retrieveIssueUrl, []byte(""), GET, string(session))
-	var jsontype JiraIssue
+		var jsontype JiraIssue
+		json.Unmarshal(body, &jsontype)
+		fields = jsontype.Fields
+	}
 
-	fmt.Println(string(body))
-	json.Unmarshal(body, &jsontype)
-
-	return jsontype.Fields
+	return fields
 }
 
-func CreateReleaseIssue(session Session) string {
+func CreateReleaseIssue(session Session, project string) string {
 
 	log.Println("Creating JIRA release issue")
 	createIssueUrl := getJiraUrl(JIRA_ISSUE_CREATE_URL)
 
-	body := doRequest(createIssueUrl, []byte(`
-		{"fields":
-			{"project": {
-				"id": "11497"
-			},
-			"summary": "Release",
-			"issuetype": {
-				"id": "3"
-			},
-			"assignee": {
-            	"name": "customersupport"
-        	},
-			"priority": {
-				"id": "2"
-			},
-			"labels": [
-				"release"
-			],
-			"description": "Release"
-		}
-	}`), POST, string(session))
+	projectId := JiraIssueFieldId{ config.GetProperty("jira.project.id") }
+	summary := fmt.Sprintf("[RELEASE] %v", project)
+	issueType := JiraIssueFieldId{ "3" }
+	assignee := JiraIssueFieldName{ config.GetProperty("jira.assignee.name") }
+	priority := JiraIssueFieldId{ "2" }
+	labels := []string{"release"}
+	description := fmt.Sprintf("Release of %v", project)
 
-	var jsontype JiraIssueFields
+	jiraIssueFields := JiraIssueFields{projectId, summary, issueType, assignee, priority, labels, description }
+	jiraIssue := JiraIssue {jiraIssueFields}
+
+	jiraIssueJson, err := json.Marshal(jiraIssue)
+	if err != nil {
+		log.Print(err)
+	}
+
+	body := doRequest(createIssueUrl, jiraIssueJson, POST, string(session))
+	var jsontype JiraIssueKey
 	json.Unmarshal(body, &jsontype)
 
 	return jsontype.Key
@@ -107,7 +121,7 @@ func CreateReleaseIssue(session Session) string {
 
 func CloseIssue(session Session, issueKey string) {
 
-	log.Println("Closing JIRA issue %v", issueKey)
+	log.Printf("Closing JIRA issue %v", issueKey)
 	transitionIssueUrl := getJiraUrl(JIRA_ISSUE_TRANSITION_URL)
 
 	doRequest(fmt.Sprintf(transitionIssueUrl, issueKey), []byte(`{
