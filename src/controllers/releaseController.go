@@ -53,7 +53,7 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	repository.AddAll(repositoryName)
 
 	//Create a commit with the changed version
-	releaseCommitText := fmt.Sprintf("\"Release version %v\"", projectReleaseVersion)
+	releaseCommitText := fmt.Sprintf("Release version %v", projectReleaseVersion)
 	repository.Commit(repositoryName, releaseCommitText, jiraIssueKey)
 
 	//Push merge and changed version

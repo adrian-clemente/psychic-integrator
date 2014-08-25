@@ -16,7 +16,10 @@ const (
 
 	AUTHOR_TOKEN string = "Author:"
 	DATE_TOKEN string = "Date:"
-	JIRA_ISSUE_ID_REGEX string = "CS-\\d+"
+	MERGE_TOKEN string = "Merge:"
+	COMMIT_TOKEN string = "commit"
+	JIRA_ISSUE_ID_REGEX string = "\\[CS-\\d+\\]"
+	HASH_REGEX string = "[a-z0-9]{40}"
 )
 
 type CommitData struct {
@@ -112,24 +115,35 @@ func getExternalRepositoryPath(repository Repository) string {
 
 func parseCommitResponse(rawCommitText string) []CommitData {
 	jiraTicketRegex := regexp.MustCompile(JIRA_ISSUE_ID_REGEX)
+	hashRegex := regexp.MustCompile(HASH_REGEX)
+
 	var commits []CommitData
 
 	for _, value := range strings.Split(rawCommitText, "commit") {
 		if (len(value) > 0) {
-			commitContent := [5]string{}
-			index := 0
+
+			var commitHash, author, date, jiraTicket, text string
+
 			for _, value := range strings.Split(value, "\n") {
-				if (len(value) > 0 && index < 5) {
-					commitContent[index] = strings.TrimSpace(value)
-					index++
+				value = strings.TrimSpace(value)
+				if value != "" {
+					if strings.Contains(value, AUTHOR_TOKEN) {
+						author = strings.TrimSpace(strings.Split(value, AUTHOR_TOKEN)[1]);
+					} else if strings.Contains(value, DATE_TOKEN)  {
+						date = strings.TrimSpace(strings.Split(value, DATE_TOKEN)[1]);
+					} else if jiraTicketRegex.FindString(value) != "" {
+						jiraTicket = jiraTicketRegex.FindAllString(value, 1)[0]
+						jiraTicket = jiraTicket[1:len(jiraTicket)-1] //Remove []
+						text = strings.TrimSpace(jiraTicketRegex.Split(value, 2)[1]);
+					} else if hashRegex.FindString(value) != "" {
+						commitHash = strings.TrimSpace(value);
+					} else if strings.Contains(value, MERGE_TOKEN)  {
+						// Do nothing
+					} else {
+						text = value
+					}
 				}
 			}
-			commitHash := commitContent[0]
-			author := removeToken(commitContent[1], AUTHOR_TOKEN)
-			date := removeToken(commitContent[2], DATE_TOKEN)
-			jiraTicket := jiraTicketRegex.FindString(commitContent[3])
-			text := removeToken(commitContent[3], "]")
-
 			commits = append(commits, CommitData{commitHash, author, date, text, jiraTicket})
 		}
 	}
