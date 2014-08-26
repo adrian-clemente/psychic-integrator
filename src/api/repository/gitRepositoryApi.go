@@ -105,10 +105,8 @@ func GetLocalRepositoryPath(repository Repository) string {
 }
 
 func getExternalRepositoryPath(repository Repository) string {
-	username := config.GetProperty("repository.external.username")
-	password := config.GetProperty("repository.external.password")
 	extRepositoryPath := config.GetProperty("repository.external.path")
-	extRepositoryPathFmt := fmt.Sprintf(extRepositoryPath, username, password, repository)
+	extRepositoryPathFmt := fmt.Sprintf(extRepositoryPath, repository)
 
 	return extRepositoryPathFmt
 }
