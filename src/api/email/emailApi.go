@@ -30,11 +30,15 @@ func GenerateReleaseEmail(project project.ProjectKey, version string, commits []
 	emailReceiver := config.GetProperty("email.auth.user")
 	log.Printf("Sending release email to: %v", emailReceiver)
 
+	jiraIssuesEmailMap := make(map[string]bool)
 	var jiraIssuesEmail []email.JiraIssueEmail
 	for _, commit := range commits {
-		jiraIssueFields := jira.RetrieveIssue(commit.JiraTicket)
-		jiraIssuesEmail = append(jiraIssuesEmail, email.JiraIssueEmail{commit.JiraTicket,
-				jira.GetJiraIssueBrowseUrl(commit.JiraTicket), jiraIssueFields.Summary})
+		if _, exists := jiraIssuesEmailMap[commit.JiraTicket]; !exists {
+			jiraIssueFields := jira.RetrieveIssue(commit.JiraTicket)
+			jiraIssuesEmailMap[commit.JiraTicket] = true
+			jiraIssuesEmail = append(jiraIssuesEmail, email.JiraIssueEmail{ commit.JiraTicket,
+					jira.GetJiraIssueBrowseUrl(commit.JiraTicket), jiraIssueFields.Summary })
+		}
 	}
 
 	printerPage := printer.PrinterPage{}
