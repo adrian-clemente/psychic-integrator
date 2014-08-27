@@ -4,9 +4,10 @@ import "components/web/element"
 import "components/web/section/generic"
 import "components/web/section/release"
 import "components/printer"
+import "fmt"
 
 type ReleaseHandlerPage struct {
-	ReleaseCommitsSections []element.CommitElement
+	ReleaseCommitsElements []element.CommitElement
 	ReleaseProjects []element.OptionElement
 	Project string
 }
@@ -14,7 +15,9 @@ type ReleaseHandlerPage struct {
 func (page *ReleaseHandlerPage)GetContent() string {
 
 	headerSection := generic.HeaderSection{"Release manager"}
-	bodySection := release.BodyReleaseMainSection{page.ReleaseCommitsSections, page.ReleaseProjects, page.Project }
+	commitSection := release.CommitsSection{page.ReleaseCommitsElements, page.Project}
+	bodySection := release.BodyReleaseMainSection{page.ReleaseProjects, commitSection }
+
 	footerSection := generic.FooterSection{}
 	mainSection := generic.MainSection{headerSection, bodySection, footerSection}
 	printerPage := printer.PrinterPage{}

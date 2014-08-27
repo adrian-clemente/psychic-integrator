@@ -15,6 +15,9 @@ func main() {
 	http.HandleFunc("/release/", controllers.ViewReleaseHandler)
 	http.HandleFunc("/release/execute/", controllers.PerformReleaseHandler)
 	http.HandleFunc("/deploy/", controllers.ViewDeployHandler)
+
+	http.Handle("/static/", http.FileServer(http.Dir(".")))
+
 	http.ListenAndServe(":8080", nil)
 }
 

@@ -3,20 +3,16 @@
     <form name="input" action="execute/" method="post" class="bigSeparation">
         <div>
             <span>Select the project to be released</span>
-            <select id="projects" name="project" onchange="window.location.href='/release/?project=' + this.value">
+            <select id="projects" name="project">
                 {{ .Projects }}
             </select>
         </div>
         <input type="submit" value="Submit">
     </form>
-    <h3>{{ .Project }} commits to be released</h3>
-    <div>
-        {{ if .Commits }}
-            {{ .Commits }}
-        {{else}}
-            <div class="commitStruct">There isn't anything to commit</div>
-        {{ end }}
-    <div>
+
+    <div id="commitsContent">
+         {{ .CommitsSection }}
+    </div>
 </div>
 
 <script>
@@ -24,4 +20,16 @@
     if (project) {
         document.querySelector('#projects [value="' + project + '"]').selected = true
     }
+
+    $("#projects").change(function(e) {
+        var url = "/release/?project=" + this.value;
+
+        $.ajax({
+            url: url,
+            success: function(result) {
+                $("#commitsContent").html(result);
+            }
+        });
+    });
+
 </script>

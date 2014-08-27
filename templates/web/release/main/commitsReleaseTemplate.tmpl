@@ -1,0 +1,8 @@
+<h3>{{ .Project }} commits to be released</h3>
+<div>
+    {{ if .ReleaseCommitsElements }}
+        {{ .ReleaseCommitsElements }}
+    {{else}}
+        <div class="commitStruct">There isn't anything to commit</div>
+    {{ end }}
+<div>

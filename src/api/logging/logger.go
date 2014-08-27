@@ -62,7 +62,6 @@ func PrintLoggerLine(inputChan <- chan string) {
 	for {
 		loggerLine := formatRawText(<- inputChan)
 		loggerLines.addLoggerLine(&loggerLine)
-		//fmt.Println(loggerLine);
 		time.Sleep(time.Second * 1)
 	}
 }

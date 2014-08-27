@@ -3,9 +3,8 @@ package release
 import "components/web/element"
 
 type BodyReleaseMainSection struct {
-	Commits []element.CommitElement
 	Projects []element.OptionElement
-	Project string
+	CommitsSection CommitsSection
 }
 
 func (page BodyReleaseMainSection)GetTemplateName() string {

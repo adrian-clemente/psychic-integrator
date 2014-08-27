@@ -11,13 +11,9 @@ import "api/jira"
 import "api/config"
 
 func ViewReleaseHandler(w http.ResponseWriter, r *http.Request) {
-	projectNameParam := r.URL.Query()["project"]
-	projectName := string(project.FAVOR_PROJECT)
-	repositoryName := repository.Repository(project.FAVOR_PROJECT)
-	if len(projectNameParam) > 0 {
-		projectName = projectNameParam[0]
-		repositoryName = repository.Repository(projectNameParam[0])
-	}
+	projectName := string(project.TEST_PROJECT)
+	repositoryName := repository.Repository(project.TEST_PROJECT)
+
 	//First ensure the repository exists
 	repository.Clone(repositoryName)
 

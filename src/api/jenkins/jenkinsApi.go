@@ -21,6 +21,4 @@ func BuildProject() {
 }
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(jenkinsUrlFmt)
-	fmt.Println(err)
-	fmt.Println(resp)
 }
