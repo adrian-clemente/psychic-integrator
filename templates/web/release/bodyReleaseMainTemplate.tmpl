@@ -1,0 +1,65 @@
+<div id="content">
+    <h2>Project release</h2>
+    <form id="releaseForm" name="releaseForm" action="execute/" method="post" class="bigSeparation">
+        <div>
+            <span>Select the project to be released</span>
+            <select id="projects" name="project">
+                {{ .Projects }}
+            </select>
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+
+    <div id="releaseResult">
+        <div id="spinner" style="display:none">
+            LOADING
+        </div>
+    <div>
+
+    <div id="commitsContent">
+         {{ .CommitsSection }}
+    </div>
+</div>
+
+<script>
+    var project = window.location.href.split("=")[1]
+    if (project) {
+        document.querySelector('#projects [value="' + project + '"]').selected = true
+    }
+
+    $("#projects").change(function(e) {
+        var url = "/release/commits/?project=" + this.value;
+
+        $.ajax({
+            url: url,
+            success: function(result) {
+                $("#commitsContent").html(result);
+            }
+        });
+    });
+
+    $("#releaseForm").submit(function(e) {
+        var postData = $(this).serializeArray();
+        var formURL = $(this).attr("action");
+
+        $("#spinner").show();
+        $("#commitsContent").hide();
+
+        $.ajax({
+            url : formURL,
+            type: "POST",
+            data : postData,
+            success:function(data, textStatus, jqXHR) {
+                 $("#releaseResult").html(data);
+                 $("#spinner").hide();
+                 $("#commitsContent").show();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                 $("#spinner").hide();
+                 $("#commitsContent").show();
+                //if fails
+            }
+        });
+        e.preventDefault();
+    });
+</script>

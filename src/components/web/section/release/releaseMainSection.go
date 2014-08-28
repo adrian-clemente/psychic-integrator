@@ -8,5 +8,5 @@ type BodyReleaseMainSection struct {
 }
 
 func (page BodyReleaseMainSection)GetTemplateName() string {
-	return "web/release/main/bodyReleaseMainTemplate.tmpl"
+	return "web/release/bodyReleaseMainTemplate.tmpl"
 }

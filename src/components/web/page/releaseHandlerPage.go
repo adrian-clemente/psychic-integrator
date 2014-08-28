@@ -4,7 +4,6 @@ import "components/web/element"
 import "components/web/section/generic"
 import "components/web/section/release"
 import "components/printer"
-import "fmt"
 
 type ReleaseHandlerPage struct {
 	ReleaseCommitsElements []element.CommitElement

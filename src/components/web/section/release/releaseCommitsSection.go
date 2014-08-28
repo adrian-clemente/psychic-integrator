@@ -1,6 +1,7 @@
 package release
 
 import "components/web/element"
+import "components/printer"
 
 type CommitsSection struct {
 	ReleaseCommitsElements []element.CommitElement
@@ -8,5 +9,11 @@ type CommitsSection struct {
 }
 
 func (page CommitsSection)GetTemplateName() string {
-	return "web/release/main/commitsReleaseTemplate.tmpl"
+	return "web/release/commitsReleaseTemplate.tmpl"
+}
+
+func (page *CommitsSection)GetContent() string {
+	printerPage := printer.PrinterPage{}
+	content, _ := printerPage.PrintContent(*page);
+	return content;
 }

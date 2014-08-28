@@ -15,6 +15,7 @@ func main() {
 	http.HandleFunc("/release/", controllers.ViewReleaseHandler)
 	http.HandleFunc("/release/execute/", controllers.PerformReleaseHandler)
 	http.HandleFunc("/deploy/", controllers.ViewDeployHandler)
+	http.HandleFunc("/release/commits/", controllers.ViewReleaseCommitsHandler)
 
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
 

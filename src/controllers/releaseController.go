@@ -9,10 +9,11 @@ import "api/email"
 import "api/project"
 import "api/jira"
 import "api/config"
+import "components/web/section/release"
 
 func ViewReleaseHandler(w http.ResponseWriter, r *http.Request) {
-	projectName := string(project.TEST_PROJECT)
-	repositoryName := repository.Repository(project.TEST_PROJECT)
+	projectName := string(project.FAVOR_PROJECT)
+	repositoryName := repository.Repository(project.FAVOR_PROJECT)
 
 	//First ensure the repository exists
 	repository.Clone(repositoryName)
@@ -23,6 +24,20 @@ func ViewReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	releasePage := page.ReleaseHandlerPage{releaseCommitsSections, releaseProjects, projectName}
 	releasePageContent := releasePage.GetContent();
 	fmt.Fprintf(w, releasePageContent)
+}
+
+func ViewReleaseCommitsHandler(w http.ResponseWriter, r *http.Request) {
+	projectNameParam := r.URL.Query()["project"][0]
+	repositoryName := repository.Repository(projectNameParam)
+
+	//First ensure the repository exists
+	repository.Clone(repositoryName)
+
+	releaseCommitsElements := getProjectReleaseToCommit(repositoryName)
+	commitSection := release.CommitsSection{releaseCommitsElements, string(projectNameParam)}
+	commitSectionContent := commitSection.GetContent()
+
+	fmt.Fprintf(w, commitSectionContent)
 }
 
 func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
@@ -69,9 +84,11 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	//Send the email with all the commits that were merged
 	email.GenerateReleaseEmail(projectName, projectReleaseVersion, commitsRelease)
 
-	releasePage := page.ReleasePerformedPage{projectNameParam, true}
-	releasePageContent := releasePage.GetContent();
-	fmt.Fprintf(w, releasePageContent)
+	resultHeader := fmt.Sprintf("%v release summary", projectName)
+	result := "Release submit has finished correctly"
+	releaseResultSection := release.BodyReleaseResultSection{resultHeader, result}
+	releaseResultSectionContent := releaseResultSection.GetContent();
+	fmt.Fprintf(w, releaseResultSectionContent)
 }
 
 /**
