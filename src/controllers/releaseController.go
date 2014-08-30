@@ -21,7 +21,9 @@ func ViewReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	releaseProjects := getReleaseProjects()
 	releaseCommitsSections := getProjectReleaseToCommit(repositoryName)
 
-	releasePage := page.ReleaseHandlerPage{releaseCommitsSections, releaseProjects, projectName}
+	projectVersion := project.PrintVersion(repositoryName)
+
+	releasePage := page.ReleaseHandlerPage{releaseCommitsSections, releaseProjects, projectName, projectVersion}
 	releasePageContent := releasePage.GetContent();
 	fmt.Fprintf(w, releasePageContent)
 }
@@ -34,7 +36,8 @@ func ViewReleaseCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	repository.Clone(repositoryName)
 
 	releaseCommitsElements := getProjectReleaseToCommit(repositoryName)
-	commitSection := release.CommitsSection{releaseCommitsElements, string(projectNameParam)}
+	projectVersion := project.PrintVersion(repositoryName)
+	commitSection := release.CommitsSection{releaseCommitsElements, string(projectNameParam), projectVersion}
 	commitSectionContent := commitSection.GetContent()
 
 	fmt.Fprintf(w, commitSectionContent)

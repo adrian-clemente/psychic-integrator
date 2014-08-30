@@ -1,4 +1,11 @@
-<h3>{{ .Project }} commits to be released</h3>
+<div class="releaseProjectInfo">
+    <span class="releaseProjectTitle">Project:</span>
+    <span class="releaseProjectData">{{ .Project }}</span>
+    <span class="releaseProjectTitle">Version:</span>
+    <span class="releaseProjectData">{{.Version}}</span>
+    <div class="commitSectionHeader">Commits:</div>
+</div>
+
 <div class="commitsSection">
     {{ if .ReleaseCommitsElements }}
         {{ .ReleaseCommitsElements }}

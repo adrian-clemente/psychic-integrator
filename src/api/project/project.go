@@ -94,7 +94,11 @@ func SetDevelopmentVersion(repositoryName repository.Repository) {
 
 func PrintVersion(repositoryName repository.Repository) string {
 	versionRaw := executeGradleTask(repositoryName, "printVersion")
-	return strings.TrimSpace(strings.Split(versionRaw, " ")[1])
+	if (versionRaw != "") {
+		return strings.TrimSpace(strings.Split(versionRaw, " ")[1])
+	} else {
+		return "";
+	}
 }
 
 func executeGradleTask(repositoryName repository.Repository, gradleTask string) string {

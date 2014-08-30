@@ -6,6 +6,7 @@ import "components/printer"
 type CommitsSection struct {
 	ReleaseCommitsElements []element.CommitElement
 	Project string
+	Version string
 }
 
 func (page CommitsSection)GetTemplateName() string {
