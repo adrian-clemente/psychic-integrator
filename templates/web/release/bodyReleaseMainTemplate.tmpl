@@ -7,7 +7,7 @@
                 {{ .Projects }}
             </select>
         </div>
-        <input type="submit" value="Submit" class="releaseSubmit">
+        <input id="releaseFormSubmit" type="submit" value="Submit" class="releaseSubmit">
     </form>
 
     <div id="loadingText" class="loader"></div>
@@ -19,20 +19,16 @@
 </div>
 
 <script>
-    var project = window.location.href.split("=")[1]
-    if (project) {
-        document.querySelector('#projects [value="' + project + '"]').selected = true
-    }
-
     $("#projects").change(function(e) {
+        $("#projects").attr("disabled", true);
+        $("#releaseFormSubmit").attr("disabled", true);
+
         var url = "/release/commits/?project=" + this.value;
 
         $("#releaseResult").hide();
         $("#commitsContent").hide();
 
-        var loadingText = "Loading project information";
-        $("#loadingText").text(loadingText);
-        var loadingInterval = loadingMessage(loadingText);
+        var loadingInterval = loadingMessage("Loading project information");
 
         $.ajax({
             url: url,
@@ -41,50 +37,60 @@
                 $("#commitsContent").show();
                 $("#commitsContent").html(result);
                 clearInterval(loadingInterval);
+
+                $("#projects").attr("disabled", false);
+                $("#releaseFormSubmit").attr("disabled", false);
             }
         });
     });
 
-    var submitting = false;
 
     $("#releaseForm").submit(function(e) {
+        //$("#releaseFormSubmit").attr("disabled", true);
+        $("#projects").attr("disabled", true);
+
         var postData = $(this).serializeArray();
         var formURL = $(this).attr("action");
 
-        if (!submitting) {
+        var result = confirm("Do you want to start release process?");
+        if (result) {
+            var submitting = true;
+            $("#commitsContent").hide();
 
-            var result = confirm("Do you want to start release process?");
-            if (result) {
-                var submitting = true;
-                $("#commitsContent").hide();
+            var loadingInterval = loadingMessage("Executing release process");
 
-                var loadingText = "Executing release process";
-                $("#loadingText").text(loadingText);
-                var loadingInterval = loadingMessage(loadingText);
+            $.ajax({
+                url : formURL,
+                type: "POST",
+                data : postData,
+                success:function(data, textStatus, jqXHR) {
+                    clearInterval(loadingInterval);
+                    $("#loadingText").text("");
+                    $("#releaseResult").show();
+                    $("#releaseResult").html(data);
 
-                $.ajax({
-                    url : formURL,
-                    type: "POST",
-                    data : postData,
-                    success:function(data, textStatus, jqXHR) {
-                        clearInterval(loadingInterval);
-                        $("#loadingText").text("");
-                        $("#releaseResult").show();
-                        $("#releaseResult").html(data);
-                        submitting = false;
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        clearInterval(loadingInterval);
-                        $("#loadingText").text("");
-                        submitting = false;
-                    }
-                });
-                e.preventDefault();
-            }
+                    $("#releaseFormSubmit").attr("disabled", false);
+                    $("#projects").attr("disabled", false);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    clearInterval(loadingInterval);
+                    $("#loadingText").text("");
+
+                    $("#releaseFormSubmit").attr("disabled", false);
+                    $("#projects").attr("disabled", false);
+                }
+            });
+
+        } else {
+            //$("#releaseFormSubmit").attr("disabled", false);
+            $("#projects").attr("disabled", false);
         }
+        e.preventDefault();
     });
 
     function loadingMessage(message) {
+
+        $("#loadingText").text(message);
         var numDots = 1;
         var loadingInterval = setInterval(function(){
             var dots = "";

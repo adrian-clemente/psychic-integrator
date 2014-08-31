@@ -276,3 +276,19 @@ h2 {
     font-weight: bold;
     font-size: 100%;
 }
+
+.content {
+    margin-bottom: 50px;
+    margin-left: 80px;
+    font-size: 105%;
+}
+
+.resultText {
+    margin-top: 20px;
+    color: rgb(46, 165, 0);
+}
+
+
+.resultHeader {
+   font-weight: bold;
+}

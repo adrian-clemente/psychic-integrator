@@ -46,7 +46,6 @@ func ViewReleaseCommitsHandler(w http.ResponseWriter, r *http.Request) {
 func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	projectNameParam := r.FormValue("project")
 	repositoryName := repository.Repository(projectNameParam)
-	projectName := project.ProjectKey(projectNameParam)
 
 	//First ensure the repository exists
 	repository.Clone(repositoryName)
@@ -84,10 +83,12 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	//Close ticket
 	jira.CloseIssue(session, jiraIssueKey)
 
-	//Send the email with all the commits that were merged
-	email.GenerateReleaseEmail(projectName, projectReleaseVersion, commitsRelease)
+	fmt.Println(projectNameParam)
 
-	resultHeader := fmt.Sprintf("%v release summary", projectName)
+	//Send the email with all the commits that were merged
+	email.GenerateReleaseEmail(projectNameParam, projectReleaseVersion, commitsRelease)
+
+	resultHeader := fmt.Sprintf("Release summary of %v:", projectNameParam)
 	result := "Release submit has finished correctly"
 	releaseResultSection := release.BodyReleaseResultSection{resultHeader, result}
 	releaseResultSectionContent := releaseResultSection.GetContent();
