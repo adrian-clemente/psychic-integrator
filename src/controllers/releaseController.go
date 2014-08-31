@@ -83,8 +83,6 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	//Close ticket
 	jira.CloseIssue(session, jiraIssueKey)
 
-	fmt.Println(projectNameParam)
-
 	//Send the email with all the commits that were merged
 	email.GenerateReleaseEmail(projectNameParam, projectReleaseVersion, commitsRelease)
 

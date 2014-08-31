@@ -46,11 +46,11 @@
 
 
     $("#releaseForm").submit(function(e) {
-        //$("#releaseFormSubmit").attr("disabled", true);
-        $("#projects").attr("disabled", true);
-
         var postData = $(this).serializeArray();
         var formURL = $(this).attr("action");
+
+        $("#releaseFormSubmit").attr("disabled", true);
+        $("#projects").attr("disabled", true);
 
         var result = confirm("Do you want to start release process?");
         if (result) {
@@ -82,7 +82,7 @@
             });
 
         } else {
-            //$("#releaseFormSubmit").attr("disabled", false);
+            $("#releaseFormSubmit").attr("disabled", false);
             $("#projects").attr("disabled", false);
         }
         e.preventDefault();
