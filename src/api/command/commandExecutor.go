@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func ExecuteCommand(cmd string) string {
+func ExecuteCommand(cmd string) (string, error) {
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	log.Println("command is ", cmd)
@@ -22,7 +22,7 @@ func ExecuteCommand(cmd string) string {
 	}
 	wg.Done() // Need to signal to waitgroup that this goroutine is done
 
-	return string(out)
+	return string(out), err
 }
 
 func ExecuteCommandWithParams(cmd string, params ...string) string {

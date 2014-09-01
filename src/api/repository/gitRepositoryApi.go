@@ -32,7 +32,7 @@ type CommitData struct {
 
 func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 	logCommand := fmt.Sprintf("git -C %v log -n%v %v", repository, numCommits, branch)
-	rawCommitText := command.ExecuteCommand(logCommand)
+	rawCommitText, _ := command.ExecuteCommand(logCommand)
 	return parseCommitResponse(rawCommitText)
 }
 
@@ -50,19 +50,19 @@ func Merge(repository Repository, currentBranch Branch, mergeBranch Branch, jira
 
 func AddAll(repository Repository) {
 	repoPath := GetLocalRepositoryPath(repository)
-	addCommand := fmt.Sprintf("git -C %v add --all", repoPath);
+	addCommand := fmt.Sprintf("git -C %v add --all", repoPath)
 	command.ExecuteCommand(addCommand)
 }
 
 func Checkout(repository Repository, branch Branch) {
 	repoPath := GetLocalRepositoryPath(repository)
-	checkoutCommand := fmt.Sprintf("git -C %v checkout -b %v origin/%v", repoPath, branch, branch);
+	checkoutCommand := fmt.Sprintf("git -C %v checkout -b %v origin/%v", repoPath, branch, branch)
 	command.ExecuteCommand(checkoutCommand)
 }
 
 func ChangeBranch(repository Repository, branch Branch) {
 	repoPath := GetLocalRepositoryPath(repository)
-	checkoutCommand := fmt.Sprintf("git -C %v checkout %v", repoPath, branch);
+	checkoutCommand := fmt.Sprintf("git -C %v checkout %v", repoPath, branch)
 	command.ExecuteCommand(checkoutCommand)
 }
 
@@ -74,26 +74,41 @@ func Commit(repository Repository, message string, jiraTicket string) {
 
 func Push(repository Repository, branch Branch) {
 	repoPath := GetLocalRepositoryPath(repository)
-	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch);
+	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch)
 	command.ExecuteCommand(pushCommand)
 }
 
 func Clone(repository Repository) {
 	localRepositoryPathFmt := GetLocalRepositoryPath(repository)
 	if _, err := os.Stat(localRepositoryPathFmt); os.IsNotExist(err) {
-		extRepositoryPathFmt := getExternalRepositoryPath(repository)
-		cloneCommand := fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt);
-		command.ExecuteCommand(cloneCommand)
 
-		Checkout(repository, DEVELOP_BRANCH)
-		Checkout(repository, MASTER_BRANCH)
+		//Try clone repository from external path
+		extRepositoryPathFmt := getExternalRepositoryPath(repository, "repository.external.path")
+		cloneCommand := fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt)
+		_, err := command.ExecuteCommand(cloneCommand)
+		if err != nil {
+			//Try clone repository from external github path
+			extRepositoryPathFmt = getExternalRepositoryPath(repository, "repository.external.github.path")
+			cloneCommand = fmt.Sprintf("git clone %v %v", extRepositoryPathFmt, localRepositoryPathFmt)
+			_, err := command.ExecuteCommand(cloneCommand)
+			if err == nil {
+				checkoutLocalBranches(repository)
+			}
+		} else {
+			checkoutLocalBranches(repository)
+		}
 	}
+}
+
+func checkoutLocalBranches(repository Repository) {
+	Checkout(repository, DEVELOP_BRANCH)
+	Checkout(repository, MASTER_BRANCH)
 }
 
 func CommitDiff(repository Repository, firstBranch Branch, secondBranch Branch) []CommitData {
 	repoPath := GetLocalRepositoryPath(repository)
-	diffCommand := fmt.Sprintf("git -C %v log %v..%v", repoPath, firstBranch, secondBranch);
-	rawCommitText := command.ExecuteCommand(diffCommand)
+	diffCommand := fmt.Sprintf("git -C %v log %v..%v", repoPath, firstBranch, secondBranch)
+	rawCommitText, _ := command.ExecuteCommand(diffCommand)
 	return parseCommitResponse(rawCommitText)
 }
 
@@ -104,8 +119,8 @@ func GetLocalRepositoryPath(repository Repository) string {
 	return localRepositoryPathFmt
 }
 
-func getExternalRepositoryPath(repository Repository) string {
-	extRepositoryPath := config.GetProperty("repository.external.path")
+func getExternalRepositoryPath(repository Repository, path string) string {
+	extRepositoryPath := config.GetProperty(path)
 	extRepositoryPathFmt := fmt.Sprintf(extRepositoryPath, repository)
 
 	return extRepositoryPathFmt
@@ -126,15 +141,15 @@ func parseCommitResponse(rawCommitText string) []CommitData {
 				value = strings.TrimSpace(value)
 				if value != "" {
 					if strings.Contains(value, AUTHOR_TOKEN) {
-						author = strings.TrimSpace(strings.Split(value, AUTHOR_TOKEN)[1]);
+						author = strings.TrimSpace(strings.Split(value, AUTHOR_TOKEN)[1])
 					} else if strings.Contains(value, DATE_TOKEN)  {
-						date = strings.TrimSpace(strings.Split(value, DATE_TOKEN)[1]);
+						date = strings.TrimSpace(strings.Split(value, DATE_TOKEN)[1])
 					} else if jiraTicketRegex.FindString(value) != "" {
 						jiraTicket = jiraTicketRegex.FindAllString(value, 1)[0]
 						jiraTicket = jiraTicket[1:len(jiraTicket)-1] //Remove []
-						text = strings.TrimSpace(jiraTicketRegex.Split(value, 2)[1]);
+						text = strings.TrimSpace(jiraTicketRegex.Split(value, 2)[1])
 					} else if hashRegex.FindString(value) != "" {
-						commitHash = strings.TrimSpace(value);
+						commitHash = strings.TrimSpace(value)
 					} else if strings.Contains(value, MERGE_TOKEN)  {
 						// Do nothing
 					} else {
@@ -150,7 +165,7 @@ func parseCommitResponse(rawCommitText string) []CommitData {
 }
 
 func removeToken(originalString string, token string) string {
-	splitString := strings.Split(originalString, token);
+	splitString := strings.Split(originalString, token)
 	if (len(splitString) > 1) {
 		return strings.TrimSpace(splitString[1])
 	} else {

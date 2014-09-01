@@ -105,5 +105,6 @@ func executeGradleTask(repositoryName repository.Repository, gradleTask string) 
 	gradlePath := config.GetProperty("gradle.path")
 	projectsContainerPath := config.GetProperty("repository.local.path")
 	projectPath := fmt.Sprintf(projectsContainerPath, repositoryName)
-	return command.ExecuteCommand(fmt.Sprintf("%v -p %v -q %v", gradlePath, projectPath, gradleTask))
+	output, _ := command.ExecuteCommand(fmt.Sprintf("%v -p %v -q %v", gradlePath, projectPath, gradleTask))
+	return output
 }
