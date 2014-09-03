@@ -278,17 +278,37 @@ h2 {
 }
 
 .content {
-    margin-bottom: 50px;
+    margin-bottom: 39px;
     margin-left: 80px;
-    font-size: 105%;
+    font-size: 100%;
+    display: inline-block;
+    height: 85px;
+    margin-top: 39px;
+    padding: 20px;
 }
 
-.resultText {
+.errorResult {
+    background-color: rgb(253, 175, 175);
+    font-weight: bold;
+    font-size: 90%;
+}
+
+.correctResult {
+    background-color: rgb(208, 255, 208);
+    font-weight: bold;
+    font-size: 90%;
+}
+
+.correctResult div.resultText {
     margin-top: 20px;
     color: rgb(46, 165, 0);
 }
-
+.errorResult div.resultText {
+    margin-top: 20px;
+    color: rgb(189, 0, 0);
+}
 
 .resultHeader {
    font-weight: bold;
+   margin-left: 80px;
 }

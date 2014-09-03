@@ -25,7 +25,7 @@ func ExecuteCommand(cmd string) (string, error) {
 	return string(out), err
 }
 
-func ExecuteCommandWithParams(cmd string, params ...string) string {
+func ExecuteCommandWithParams(cmd string, params ...string) (string, error) {
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	out, err := exec.Command(cmd, params...).Output()
@@ -34,6 +34,6 @@ func ExecuteCommandWithParams(cmd string, params ...string) string {
 	}
 	wg.Done() // Need to signal to waitgroup that this goroutine is done
 
-	return string(out)
+	return string(out), err
 }
 

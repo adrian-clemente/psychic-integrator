@@ -5,6 +5,7 @@ import "components/printer"
 type BodyReleaseResultSection struct {
 	ResultHeader string
 	Result string
+	ContentColorClass string
 }
 
 func (page BodyReleaseResultSection)GetTemplateName() string {

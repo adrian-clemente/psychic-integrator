@@ -36,7 +36,7 @@ func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 	return parseCommitResponse(rawCommitText)
 }
 
-func Merge(repository Repository, currentBranch Branch, mergeBranch Branch, jiraTicket string) {
+func Merge(repository Repository, currentBranch Branch, mergeBranch Branch, jiraTicket string) error {
 	repoPath := GetLocalRepositoryPath(repository)
 	ChangeBranch(repository, currentBranch)
 
@@ -45,7 +45,10 @@ func Merge(repository Repository, currentBranch Branch, mergeBranch Branch, jira
 
 	commitText := fmt.Sprintf("[%v] Merge %v into %v", jiraTicket, mergeBranchString, currentBranchString)
 
-	command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  commitText, mergeBranchString)
+	_, err := command.ExecuteCommandWithParams("git", "-C", repoPath, "merge", "--no-ff", "-m",  commitText,
+		mergeBranchString)
+
+	return err
 }
 
 func AddAll(repository Repository) {
@@ -72,10 +75,11 @@ func Commit(repository Repository, message string, jiraTicket string) {
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
 }
 
-func Push(repository Repository, branch Branch) {
+func Push(repository Repository, branch Branch) error {
 	repoPath := GetLocalRepositoryPath(repository)
 	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch)
-	command.ExecuteCommand(pushCommand)
+	_, err := command.ExecuteCommand(pushCommand)
+	return err
 }
 
 func Clone(repository Repository) {

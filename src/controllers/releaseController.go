@@ -57,40 +57,70 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	//Retrieve wich commits are going to be pushed in this release
 	commitsRelease := repository.CommitDiff(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
 
+	outputMsg := "Release submit has finished correctly"
+	hasError := false
+
 	//Merge develop with master branch
-	repository.Merge(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH, jiraIssueKey)
+	err := repository.Merge(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH, jiraIssueKey)
+	if err == nil {
 
-	//Remove SNAPSHOT from version and add all the changes
-	project.SetReleaseVersion(repositoryName)
-	projectReleaseVersion := project.PrintVersion(repositoryName)
-	repository.AddAll(repositoryName)
+		//Remove SNAPSHOT from version and add all the changes
+		project.SetReleaseVersion(repositoryName)
+		projectReleaseVersion := project.PrintVersion(repositoryName)
+		repository.AddAll(repositoryName)
 
-	//Create a commit with the changed version
-	releaseCommitText := fmt.Sprintf("Release version %v", projectReleaseVersion)
-	repository.Commit(repositoryName, releaseCommitText, jiraIssueKey)
+		//Create a commit with the changed version
+		releaseCommitText := fmt.Sprintf("Release version %v", projectReleaseVersion)
+		repository.Commit(repositoryName, releaseCommitText, jiraIssueKey)
 
-	//Push merge and changed version
-	repository.Push(repositoryName, repository.MASTER_BRANCH)
+		//Push merge and changed version
+		err := repository.Push(repositoryName, repository.MASTER_BRANCH)
+		if err == nil {
+			//Merge master branch into develop and increment version
+			err := repository.Merge(repositoryName, repository.DEVELOP_BRANCH, repository.MASTER_BRANCH, jiraIssueKey)
+			if (err == nil) {
+				project.IncrementMinorVersion(repositoryName)
+				project.SetDevelopmentVersion(repositoryName)
+				repository.AddAll(repositoryName)
+				repository.Commit(repositoryName, "Merge master branch into develop branch", jiraIssueKey)
+				err = repository.Push(repositoryName, repository.DEVELOP_BRANCH)
+				if err != nil {
+					outputMsg = "Error while pushing to the repository"
+					hasError = true
+				}
 
-	//Merge master branch into develop and increment version
-	repository.Merge(repositoryName, repository.DEVELOP_BRANCH, repository.MASTER_BRANCH, jiraIssueKey)
-	project.IncrementMinorVersion(repositoryName)
-	project.SetDevelopmentVersion(repositoryName)
-	repository.AddAll(repositoryName)
-	repository.Commit(repositoryName, "Merge master branch into develop branch", jiraIssueKey)
-	repository.Push(repositoryName, repository.DEVELOP_BRANCH)
+			} else {
+				outputMsg = "Conflicts while merging MASTER branch into DEVELOP branch. You should do manually the merge"
+				hasError = true
+			}
+			//Close ticket
+			jira.CloseIssue(session, jiraIssueKey)
+			//Send the email with all the commits that were merged
+			email.GenerateReleaseEmail(projectNameParam, projectReleaseVersion, commitsRelease)
+		} else {
+			outputMsg = "Error while pushing to the repository"
+			hasError = true
+		}
+	} else {
+		outputMsg = "Conflicts while merging DEVELOP branch into MASTER branch. You should do manually the merge"
+		hasError = true
+	}
 
-	//Close ticket
-	jira.CloseIssue(session, jiraIssueKey)
-
-	//Send the email with all the commits that were merged
-	email.GenerateReleaseEmail(projectNameParam, projectReleaseVersion, commitsRelease)
-
-	resultHeader := fmt.Sprintf("Release summary of %v:", projectNameParam)
-	result := "Release submit has finished correctly"
-	releaseResultSection := release.BodyReleaseResultSection{resultHeader, result}
-	releaseResultSectionContent := releaseResultSection.GetContent();
+	releaseResultSectionContent := getReleaseContent(projectNameParam, outputMsg, hasError)
 	fmt.Fprintf(w, releaseResultSectionContent)
+}
+
+func getReleaseContent(project string, outputMsg string, hasError bool) string {
+	resultHeader := fmt.Sprintf("Release summary of %v:", project)
+
+	contentColorClass := "correctResult"
+	if hasError {
+		contentColorClass = "errorResult"
+	}
+
+	releaseResultSection := release.BodyReleaseResultSection{resultHeader, outputMsg, contentColorClass}
+	releaseResultSectionContent := releaseResultSection.GetContent();
+	return releaseResultSectionContent
 }
 
 /**
