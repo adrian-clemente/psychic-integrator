@@ -53,8 +53,7 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Create Jira Issue
 	session := jira.Login()
-	//jiraIssueKey := jira.CreateReleaseIssue(session, projectNameParam)
-	jiraIssueKey := "CS-1"
+	jiraIssueKey := jira.CreateReleaseIssue(session, projectNameParam)
 
 	//Retrieve wich commits are going to be pushed in this release
 	commitsRelease := repository.CommitDiff(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)

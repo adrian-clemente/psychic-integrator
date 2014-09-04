@@ -156,33 +156,34 @@ func parseCommitResponse(rawCommitText string) []CommitData {
 	hashRegex := regexp.MustCompile(HASH_REGEX)
 
 	var commits []CommitData
+	var commitHash, author, date, jiraTicket, text string
 
-	for _, value := range strings.Split(rawCommitText, "commit") {
-		if (len(value) > 0) {
-
-			var commitHash, author, date, jiraTicket, text string
-
-			for _, value := range strings.Split(value, "\n") {
-				value = strings.TrimSpace(value)
-				if value != "" {
-					if strings.Contains(value, AUTHOR_TOKEN) {
-						author = strings.TrimSpace(strings.Split(value, AUTHOR_TOKEN)[1])
-					} else if strings.Contains(value, DATE_TOKEN)  {
-						date = strings.TrimSpace(strings.Split(value, DATE_TOKEN)[1])
-					} else if jiraTicketRegex.FindString(value) != "" {
-						jiraTicket = jiraTicketRegex.FindAllString(value, 1)[0]
-						jiraTicket = jiraTicket[1:len(jiraTicket)-1] //Remove []
-						text = strings.TrimSpace(jiraTicketRegex.Split(value, 2)[1])
-					} else if hashRegex.FindString(value) != "" {
-						commitHash = strings.TrimSpace(value)
-					} else if strings.Contains(value, MERGE_TOKEN)  {
-						// Do nothing
-					} else {
-						text = text + "</br>" + value
-					}
+	for _, value := range strings.Split(rawCommitText, "\n") {
+		value = strings.TrimSpace(value)
+		if value != "" {
+			if strings.Contains(value, AUTHOR_TOKEN) {
+				author = strings.TrimSpace(strings.Split(value, AUTHOR_TOKEN)[1])
+			} else if strings.Contains(value, DATE_TOKEN)  {
+				date = strings.TrimSpace(strings.Split(value, DATE_TOKEN)[1])
+			} else if jiraTicketRegex.FindString(value) != "" {
+				jiraTicket = jiraTicketRegex.FindAllString(value, 1)[0]
+				jiraTicket = jiraTicket[1:len(jiraTicket)-1] //Remove []
+				text = strings.TrimSpace(jiraTicketRegex.Split(value, 2)[1])
+			} else if hashRegex.FindString(value) != "" {
+				if commitHash != "" {
+					commits = append(commits, CommitData{commitHash, author, date, text, jiraTicket})
+					text = ""
+					jiraTicket = ""
+					author = ""
+					date = ""
 				}
+
+				commitHash = hashRegex.FindString(value)
+			} else if strings.Contains(value, MERGE_TOKEN)  {
+				// Do nothing
+			} else {
+				text = text + "</br>" + value
 			}
-			commits = append(commits, CommitData{commitHash, author, date, text, jiraTicket})
 		}
 	}
 
