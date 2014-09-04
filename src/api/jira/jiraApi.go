@@ -7,6 +7,7 @@ import "encoding/json"
 import "io/ioutil"
 import "api/config"
 import "log"
+import "time"
 
 type JiraIssue struct {
 	Fields JiraIssueFields `json:"fields"`
@@ -42,16 +43,26 @@ type SessionMap struct {
 	Value Session
 }
 
+type JiraVersionFields struct {
+	Name        string `json:"name"`
+	Released    bool `json:"released"`
+	ReleaseDate string `json:"releaseDate"`
+	Project     string `json:"project"`
+}
+
 type Session string
 
 const JIRA_LOGIN_URL = "rest/auth/1/session"
 const JIRA_ISSUE_RETRIEVE_URL = "rest/api/2/issue/%v?fields=summary"
 const JIRA_ISSUE_CREATE_URL = "rest/api/2/issue"
+const JIRA_ISSUE_UPDATE_URL = "rest/api/2/issue/%v"
 const JIRA_ISSUE_TRANSITION_URL = "rest/api/2/issue/%v/transitions"
+const JIRA_PROJECT_CREATION_URL = "rest/api/2/version"
 const JIRA_ISSUE_BROWSE_URL = "browse/%v"
 
 const GET = "GET"
 const POST = "POST"
+const PUT = "PUT"
 
 func Login() Session {
 	username := config.GetProperty("jira.auth.username")
@@ -73,12 +84,11 @@ func GetJiraIssueBrowseUrl(issueKey string) string {
 	return fmt.Sprintf(getJiraUrl(JIRA_ISSUE_BROWSE_URL), issueKey)
 }
 
-func RetrieveIssue(issueKey string) JiraIssueFields {
+func RetrieveIssue(session Session, issueKey string) JiraIssueFields {
 
 	var fields JiraIssueFields
 	if issueKey != "" {
 		log.Printf("Retrieving JIRA issue %v", issueKey)
-		session := Login()
 		retrieveIssueUrl := fmt.Sprintf(getJiraUrl(JIRA_ISSUE_RETRIEVE_URL), issueKey)
 
 		body := doRequest(retrieveIssueUrl, []byte(""), GET, string(session))
@@ -120,10 +130,8 @@ func CreateReleaseIssue(session Session, project string) string {
 }
 
 func CloseIssue(session Session, issueKey string) {
-
 	log.Printf("Closing JIRA issue %v", issueKey)
 	transitionIssueUrl := getJiraUrl(JIRA_ISSUE_TRANSITION_URL)
-
 	doRequest(fmt.Sprintf(transitionIssueUrl, issueKey), []byte(`{
 		"transition": {
 			"id": "101"
@@ -131,8 +139,39 @@ func CloseIssue(session Session, issueKey string) {
 	}`), POST, string(session))
 }
 
+func UpdateIssueVersion(session Session, issueKey string, version string) {
+	log.Printf("Update JIRA issue %v", issueKey)
+	updateIssueUrl := getJiraUrl(JIRA_ISSUE_UPDATE_URL)
+	doRequest(fmt.Sprintf(updateIssueUrl, issueKey), []byte(fmt.Sprintf(`{
+		"fields": {
+			"fixVersions": [{
+				"name" : "%v"
+			}]
+		}
+	}`, version)), PUT, string(session))
+}
+
+func CreateVersion(session Session, version string, project string) string {
+
+	log.Printf("Creating JIRA release version for %v with version %v", project, version)
+	versionUrl := getJiraUrl(JIRA_PROJECT_CREATION_URL)
+	versionName := fmt.Sprintf("%v - %v", project, version)
+	t := time.Now()
+	dateFmt := fmt.Sprintf(t.Format("2006-01-02"))
+
+	jiraVersionStruct := JiraVersionFields {versionName, true, dateFmt, "CS"}
+	jiraVersionStructJson, _ := json.Marshal(jiraVersionStruct)
+
+	doRequest(versionUrl, jiraVersionStructJson, POST, string(session))
+	return versionName
+}
+
 func doRequest(requestUrl string, requestData []byte, requestType string, sessionToken string) []byte {
-	req, _ := http.NewRequest(requestType, requestUrl, bytes.NewBuffer(requestData))
+	req, err := http.NewRequest(requestType, requestUrl, bytes.NewBuffer(requestData))
+	if err != nil {
+		log.Println(err)
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	if (len(sessionToken) > 0 ) {

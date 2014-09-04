@@ -93,19 +93,20 @@ func SetDevelopmentVersion(repositoryName repository.Repository) {
 }
 
 func PrintVersion(repositoryName repository.Repository) string {
-	versionRaw := executeGradleTask(repositoryName, "printVersion")
-	if (versionRaw != "") {
+	versionRaw, err := executeGradleTask(repositoryName, "printVersion")
+	if (versionRaw != "" && err == nil) {
 		return strings.TrimSpace(strings.Split(versionRaw, " ")[1])
 	} else {
-		return "";
+		return "Unknown";
 	}
 }
 
-func executeGradleTask(repositoryName repository.Repository, gradleTask string) string {
+func executeGradleTask(repositoryName repository.Repository, gradleTask string) (string, error) {
 	gradlePath := config.GetProperty("gradle.path")
 	projectsContainerPath := config.GetProperty("repository.local.path")
 	projectPath := fmt.Sprintf(projectsContainerPath, repositoryName)
-	output, _ := command.ExecuteCommand(fmt.Sprintf("%v -Dorg.gradle.daemon=true -p %v -q %v",
+	output, err := command.ExecuteCommand(fmt.Sprintf("%v -Dorg.gradle.daemon=true -p %v -q %v",
 		gradlePath, projectPath, gradleTask))
-	return output
+
+	return output, err
 }

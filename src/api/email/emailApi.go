@@ -7,8 +7,6 @@ import (
     "components/printer"
 	"components/email"
 	"api/config"
-	"api/repository"
-	"api/jira"
 	"fmt"
 )
 
@@ -24,24 +22,13 @@ type SmtpTemplateData struct {
 	Body    string
 }
 
-func GenerateReleaseEmail(project string, version string, commits []repository.CommitData) {
+func GenerateReleaseEmail(project string, version string, commits []email.JiraIssueEmail) {
 
 	emailReceiver := config.GetProperty("email.auth.user")
 	log.Printf("Sending release email to: %v", emailReceiver)
 
-	jiraIssuesEmailMap := make(map[string]bool)
-	var jiraIssuesEmail []email.JiraIssueEmail
-	for _, commit := range commits {
-		if _, exists := jiraIssuesEmailMap[commit.JiraTicket]; !exists {
-			jiraIssueFields := jira.RetrieveIssue(commit.JiraTicket)
-			jiraIssuesEmailMap[commit.JiraTicket] = true
-			jiraIssuesEmail = append(jiraIssuesEmail, email.JiraIssueEmail{ commit.JiraTicket,
-					jira.GetJiraIssueBrowseUrl(commit.JiraTicket), jiraIssueFields.Summary })
-		}
-	}
-
 	printerPage := printer.PrinterPage{}
-	content, _ := printerPage.PrintContent(email.ReleaseEmail{jiraIssuesEmail, project, version});
+	content, _ := printerPage.PrintContent(email.ReleaseEmail{commits, project, version});
 
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n";
 	subject := fmt.Sprintf("Subject: Release of %v %v\n", project, version)

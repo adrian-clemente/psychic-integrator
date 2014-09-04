@@ -6,6 +6,7 @@ import "components/web/element"
 import "fmt"
 import "api/repository"
 import "api/email"
+import componentEmail "components/email"
 import "api/project"
 import "api/jira"
 import "api/config"
@@ -52,7 +53,8 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Create Jira Issue
 	session := jira.Login()
-	jiraIssueKey := jira.CreateReleaseIssue(session, projectNameParam)
+	//jiraIssueKey := jira.CreateReleaseIssue(session, projectNameParam)
+	jiraIssueKey := "CS-1"
 
 	//Retrieve wich commits are going to be pushed in this release
 	commitsRelease := repository.CommitDiff(repositoryName, repository.MASTER_BRANCH, repository.DEVELOP_BRANCH)
@@ -81,12 +83,16 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 			if (err == nil) {
 				project.IncrementMinorVersion(repositoryName)
 				project.SetDevelopmentVersion(repositoryName)
+				projectNewVersion := project.PrintVersion(repositoryName)
 				repository.AddAll(repositoryName)
-				repository.Commit(repositoryName, "Merge master branch into develop branch", jiraIssueKey)
+				repository.Commit(repositoryName, fmt.Sprintf("Updated version to: %v", projectNewVersion),
+					jiraIssueKey)
 				err = repository.Push(repositoryName, repository.DEVELOP_BRANCH)
 				if err != nil {
 					outputMsg = "Error while pushing to the repository"
 					hasError = true
+				} else {
+					sendReleaseEmail(session, projectReleaseVersion, projectNameParam, commitsRelease)
 				}
 
 			} else {
@@ -95,8 +101,7 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			//Close ticket
 			jira.CloseIssue(session, jiraIssueKey)
-			//Send the email with all the commits that were merged
-			email.GenerateReleaseEmail(projectNameParam, projectReleaseVersion, commitsRelease)
+
 		} else {
 			outputMsg = "Error while pushing to the repository"
 			hasError = true
@@ -104,6 +109,10 @@ func PerformReleaseHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		outputMsg = "Conflicts while merging DEVELOP branch into MASTER branch. You should do manually the merge"
 		hasError = true
+	}
+
+	if hasError {
+		repository.Delete(repositoryName)
 	}
 
 	releaseResultSectionContent := getReleaseContent(projectNameParam, outputMsg, hasError)
@@ -121,6 +130,28 @@ func getReleaseContent(project string, outputMsg string, hasError bool) string {
 	releaseResultSection := release.BodyReleaseResultSection{resultHeader, outputMsg, contentColorClass}
 	releaseResultSectionContent := releaseResultSection.GetContent();
 	return releaseResultSectionContent
+}
+
+func sendReleaseEmail(session jira.Session, projectReleaseVersion string, projectNameParam string,
+	commitsRelease []repository.CommitData) {
+
+	jiraReleaseVersion := jira.CreateVersion(session, projectReleaseVersion, projectNameParam)
+
+	//Send the email with all the commits that were merged
+	jiraIssuesEmailMap := make(map[string]bool)
+	var jiraIssuesEmail []componentEmail.JiraIssueEmail
+	for _, commit := range commitsRelease {
+		if _, exists := jiraIssuesEmailMap[commit.JiraTicket]; !exists {
+			jiraIssueFields := jira.RetrieveIssue(session, commit.JiraTicket)
+			jira.UpdateIssueVersion(session, commit.JiraTicket, jiraReleaseVersion)
+
+			jiraIssuesEmailMap[commit.JiraTicket] = true
+			jiraIssuesEmail = append(jiraIssuesEmail, componentEmail.JiraIssueEmail{ commit.JiraTicket,
+					jira.GetJiraIssueBrowseUrl(commit.JiraTicket), jiraIssueFields.Summary })
+		}
+	}
+
+	email.GenerateReleaseEmail(projectNameParam, projectReleaseVersion, jiraIssuesEmail)
 }
 
 /**

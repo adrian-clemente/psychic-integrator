@@ -6,6 +6,7 @@ import "strings"
 import "regexp"
 import "api/config"
 import "api/command"
+import "log"
 
 type Branch string
 type Repository string
@@ -37,6 +38,10 @@ func Log(repository Repository, numCommits int, branch Branch) []CommitData {
 }
 
 func Merge(repository Repository, currentBranch Branch, mergeBranch Branch, jiraTicket string) error {
+	if jiraTicket == "" {
+		jiraTicket = "CS-0"
+	}
+
 	repoPath := GetLocalRepositoryPath(repository)
 	ChangeBranch(repository, currentBranch)
 
@@ -70,6 +75,10 @@ func ChangeBranch(repository Repository, branch Branch) {
 }
 
 func Commit(repository Repository, message string, jiraTicket string) {
+	if jiraTicket == "" {
+		jiraTicket = "CS-0"
+	}
+
 	repoPath := GetLocalRepositoryPath(repository)
 	commitMessage := fmt.Sprintf("[%v] %v", jiraTicket, message)
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
@@ -123,6 +132,18 @@ func GetLocalRepositoryPath(repository Repository) string {
 	return localRepositoryPathFmt
 }
 
+func Delete(repository Repository) {
+	localRepositoryPath := GetLocalRepositoryPath(repository)
+	err := os.RemoveAll(localRepositoryPath)
+
+	if err != nil {
+		log.Println(err)
+		return
+	} else {
+		log.Printf("Repository deleted %v", localRepositoryPath)
+	}
+}
+
 func getExternalRepositoryPath(repository Repository, path string) string {
 	extRepositoryPath := config.GetProperty(path)
 	extRepositoryPathFmt := fmt.Sprintf(extRepositoryPath, repository)
@@ -157,7 +178,7 @@ func parseCommitResponse(rawCommitText string) []CommitData {
 					} else if strings.Contains(value, MERGE_TOKEN)  {
 						// Do nothing
 					} else {
-						text = value
+						text = text + "</br>" + value
 					}
 				}
 			}

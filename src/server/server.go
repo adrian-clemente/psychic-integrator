@@ -30,4 +30,3 @@ func startLoggingProcess() {
 	}
 	go logging.PrintLoggerLine(c)
 }
-

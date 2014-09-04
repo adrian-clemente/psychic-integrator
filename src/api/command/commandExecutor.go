@@ -28,6 +28,7 @@ func ExecuteCommand(cmd string) (string, error) {
 func ExecuteCommandWithParams(cmd string, params ...string) (string, error) {
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
+	log.Println("command is ", cmd, params)
 	out, err := exec.Command(cmd, params...).Output()
 	if err != nil {
 		log.Println(err)
