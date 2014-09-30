@@ -84,6 +84,14 @@ func Commit(repository Repository, message string, jiraTicket string) {
 	command.ExecuteCommandWithParams("git", "-C", repoPath, "commit", "-m", commitMessage)
 }
 
+func Pull(repository Repository, branch Branch) error {
+	repoPath := GetLocalRepositoryPath(repository)
+	ChangeBranch(repository, branch)
+	pushCommand := fmt.Sprintf("git -C %v pull origin %v", repoPath, branch)
+	_, err := command.ExecuteCommand(pushCommand)
+	return err
+}
+
 func Push(repository Repository, branch Branch) error {
 	repoPath := GetLocalRepositoryPath(repository)
 	pushCommand := fmt.Sprintf("git -C %v push origin %v", repoPath, branch)
@@ -119,6 +127,10 @@ func checkoutLocalBranches(repository Repository) {
 }
 
 func CommitDiff(repository Repository, firstBranch Branch, secondBranch Branch) []CommitData {
+
+	Pull(repository, firstBranch)
+	Pull(repository, secondBranch)
+
 	repoPath := GetLocalRepositoryPath(repository)
 	diffCommand := fmt.Sprintf("git -C %v log %v..%v", repoPath, firstBranch, secondBranch)
 	rawCommitText, _ := command.ExecuteCommand(diffCommand)
