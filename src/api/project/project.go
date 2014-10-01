@@ -95,7 +95,7 @@ func SetDevelopmentVersion(repositoryName repository.Repository) {
 func PrintVersion(repositoryName repository.Repository) string {
 	versionRaw, err := executeGradleTask(repositoryName, "printVersion")
 	if (versionRaw != "" && err == nil) {
-		return strings.TrimSpace(strings.Split(versionRaw, " ")[1])
+		return strings.TrimSpace(strings.Split(versionRaw, "Version:")[1])
 	} else {
 		return "Unknown";
 	}
