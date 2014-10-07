@@ -13,12 +13,17 @@
     <div id="loadingText" class="loader"></div>
     <div id="releaseResult"></div>
 
+    <div id="ticketList">
+    </div>
+
     <div id="commitsContent">
          {{ .CommitsSection }}
     </div>
 </div>
 
 <script>
+    populateTicketList();
+
     $("#projects").change(function(e) {
         $("#projects").attr("disabled", true);
         $("#releaseFormSubmit").attr("disabled", true);
@@ -29,17 +34,19 @@
         $("#commitsContent").hide();
 
         var loadingInterval = loadingMessage("Loading project information");
+        $("#ticketList").html("<h3>Ticket list</h3><div>Loading...</div>");
 
         $.ajax({
             url: url,
             success: function(result) {
-            $("#loadingText").text("");
+                $("#loadingText").text("");
                 $("#commitsContent").show();
                 $("#commitsContent").html(result);
                 clearInterval(loadingInterval);
 
                 $("#projects").attr("disabled", false);
                 $("#releaseFormSubmit").attr("disabled", false);
+                populateTicketList();
             }
         });
     });
@@ -58,6 +65,7 @@
             $("#commitsContent").hide();
 
             var loadingInterval = loadingMessage("Executing release process");
+            $("#ticketList").html("<h3>Ticket list</h3><div>Loading...</div>");
 
             $.ajax({
                 url : formURL,
@@ -71,6 +79,7 @@
 
                     $("#releaseFormSubmit").attr("disabled", false);
                     $("#projects").attr("disabled", false);
+                    populateTicketList();
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     clearInterval(loadingInterval);
@@ -78,6 +87,7 @@
 
                     $("#releaseFormSubmit").attr("disabled", false);
                     $("#projects").attr("disabled", false);
+                    $("#ticketList").html("");
                 }
             });
 
@@ -108,5 +118,19 @@
         }, 750);
 
         return loadingInterval;
+    }
+
+    function populateTicketList() {
+        var tickets = $(),
+          tempArray = [];
+        $("a").each(function( elem ) {
+          var $t = $(this),
+            $text = $t.text();
+          if ($text.indexOf("CS-") !== -1 && tempArray.indexOf($text) === -1 ) {
+            tempArray.push($text);
+            tickets = tickets.add($t.clone());
+          }
+        });
+        $("#ticketList").html("<h3>Ticket list</h3><div></div>").children().eq(1).append(tickets);
     }
 </script>

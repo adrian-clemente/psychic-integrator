@@ -312,3 +312,23 @@ h2 {
    font-weight: bold;
    margin-left: 80px;
 }
+
+
+#ticketList {
+    position: fixed;
+    right: 4em;
+    top: 195px;
+}
+#ticketList h3 {
+    font-size: 1.75em;
+    font-weight: bold;
+}
+#ticketList div {
+    padding: 1em;
+    margin: 1em;
+    background: #E0E0E0;
+}
+#ticketList a {
+    display:block;
+    margin: 0.5em 0;
+}
