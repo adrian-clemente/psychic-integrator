@@ -23,16 +23,17 @@ type SmtpTemplateData struct {
 }
 
 func GenerateReleaseEmail(project string, version string, commits []email.JiraIssueEmail) {
-
-	emailReceiver := config.GetProperty("email.auth.user")
+	emailAuthUser := config.GetProperty("email.auth.user")
+	emailReceiver := config.GetProperty("email.release.receiver")
 	log.Printf("Sending release email to: %v", emailReceiver)
 
 	printerPage := printer.PrinterPage{}
 	content, _ := printerPage.PrintContent(email.ReleaseEmail{commits, project, version});
-
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n";
+	from := "From: " + emailAuthUser + "\n"
+	to := "To: " + emailReceiver + "\n"
 	subject := fmt.Sprintf("Subject: Release of %v %v\n", project, version)
-	msg := []byte(subject + mime + content)
+	msg := []byte(subject + from + to + mime + content)
 
 	sendEmail(msg, []string{emailReceiver})
 
