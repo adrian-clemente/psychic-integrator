@@ -7,7 +7,6 @@ background:#fff;
 #header
 {
 background:#ccc;
-padding: 20px;
 }
 
 #header h1 { margin: 0; }
@@ -15,7 +14,7 @@ padding: 20px;
 #navigation
 {
 float: left;
-width: 1824px;
+width: 1840px;
 background:#333;
 }
 
@@ -89,8 +88,6 @@ body {
     font-size: 100%;
     line-height: 1;
     color: #585858;
-    padding: 22px 10px;
-    padding-bottom: 55px;
 }
 
 ::selection { background: #5f74a0; color: #fff; }
@@ -212,6 +209,7 @@ text-align: left;
     display: inline-block;
     background: #E0E0E0;
     display:table;
+    width: inherit;
 }
 
 .noCommit {
@@ -220,6 +218,7 @@ text-align: left;
 
 .commitStruct div {
     margin-bottom: 4px;
+    width: auto;
 }
 
 .form {
@@ -268,6 +267,11 @@ h2 {
    margin-top: 30px;
    margin-bottom: 20px;
    margin-left: 80px;
+   overflow-y: auto;
+   overflow-x: hidden;
+   height: 500px;
+   width: 800px;
+   padding-right: 20px;
 }
 
 .loader {
