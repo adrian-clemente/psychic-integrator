@@ -27,13 +27,11 @@ const (
 	COSECHA_PROJECT ProjectKey = "cosecha"
 	OPERADORA_PROJECT ProjectKey = "operadora"
 	CARTERO_PROJECT ProjectKey = "cartero"
-	TEST_PROJECT ProjectKey = "gittest"
 
 	FAVOR_PROJECT_NAME ProjectName = "Favor"
 	COSECHA_PROJECT_NAME ProjectName = "Cosecha"
 	OPERADORA_PROJECT_NAME ProjectName = "Operadora"
 	CARTERO_PROJECT_NAME ProjectName = "Cartero"
-	TEST_PROJECT_NAME ProjectName = "Gittest"
 
 	MAJOR_RELEASE_TYPE ReleaseTypeKey = "major"
 	MINOR_RELEASE_TYPE ReleaseTypeKey = "minor"
@@ -50,7 +48,6 @@ func GetProjects() []Project {
 		{ COSECHA_PROJECT, COSECHA_PROJECT_NAME },
 		{ OPERADORA_PROJECT, OPERADORA_PROJECT_NAME },
 		{ CARTERO_PROJECT, CARTERO_PROJECT_NAME },
-		{ TEST_PROJECT, TEST_PROJECT_NAME },
 	}
 }
 
